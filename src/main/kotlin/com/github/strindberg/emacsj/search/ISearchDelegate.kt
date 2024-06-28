@@ -2,8 +2,6 @@ package com.github.strindberg.emacsj.search
 
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.VK_ESCAPE
-import java.awt.event.KeyEvent.VK_G
 import com.github.strindberg.emacsj.actions.paste.ACTION_PASTE
 import com.github.strindberg.emacsj.actions.search.ISearchAction
 import com.github.strindberg.emacsj.search.Direction.BACKWARD
@@ -32,6 +30,7 @@ import com.intellij.openapi.editor.actionSystem.TypedAction
 import com.intellij.openapi.editor.colors.EditorColors.IDENTIFIER_UNDER_CARET_ATTRIBUTES
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
 import com.intellij.openapi.editor.markup.RangeHighlighter
@@ -40,6 +39,8 @@ import com.intellij.openapi.editor.markup.TextAttributes.ERASE_MARKER
 import com.intellij.openapi.fileEditor.ex.IdeDocumentHistory
 import com.intellij.ui.JBColor
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.notebooks.visualization.cellSelectionModel
+import java.awt.event.KeyEvent.*
 
 private const val ACTION_EDITOR_SCROLL_TO_CENTER = "EditorScrollToCenter"
 private const val ACTION_RECENTER = "com.github.strindberg.emacsj.actions.view.recenter"
@@ -180,6 +181,13 @@ internal class ISearchDelegate(val editor: Editor, val type: SearchType, var dir
     }
 
     init {
+        if (editor.selectionModel.hasSelection()) {
+            val selectedText = editor.selectionModel.selectedText.toString()
+            text = ""
+            (editor as? EditorEx)?.let { ex -> ex.isStickySelection = false }
+            searchAllCarets(direction, selectedText, keepStart = true)
+        }
+
         ui.show()
     }
 
